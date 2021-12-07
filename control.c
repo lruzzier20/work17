@@ -34,9 +34,11 @@ int main(int argc, char*argv[]){
     //printf("%s\n",strerror(errno));
     int shmd;
     shmd=shmget(KEY, sizeof(int), IPC_CREAT | IPC_EXCL | 0640);
-    int* data;
-    data = shmat(shmd, 0, 0);
-    *data = open("log.txt", O_RDWR | O_CREAT | O_TRUNC, 0644);
+    int data[2];
+    int* dpointer = data;
+    dpointer = shmat(shmd, 0, 0);
+    dpointer[0] = open("log.txt", O_RDWR | O_CREAT | O_TRUNC, 0644);
+    dpointer[1]= 0;
     //printf("DATA = %d\n",*data);
     int semd, v, r;
     semd = semget(KEY2, 1, IPC_CREAT | IPC_EXCL | 0644);
@@ -55,12 +57,13 @@ int main(int argc, char*argv[]){
 
   if(controller==-1){
     int log;
-    int *n;
+    int n[2];
+    int* npointer=n;
     char s[100];
     log=shmget(KEY, 0, 0);
-    n=shmat(log, 0, 0);
+    npointer=shmat(log, 0, 0);
     //printf("RETRIEVED SHM VALUE = %d\n",*n);
-    read(*n, s, sizeof(s));
+    read(npointer[0], s, sizeof(s));
     printf("%s\n",s);
     int semd=semget(KEY2, 1, 0);
     semctl(semd, IPC_RMID, 0);
