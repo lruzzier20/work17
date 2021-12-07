@@ -18,11 +18,7 @@
    struct seminfo  *__buf;
  };
 
-
-
 int main(int argc, char*argv[]){
-  //char a[100];
-  //fgets(a, 100, stdin);
   int controller=0;
   if(argc>1){
     if(strcmp(argv[1], "Create")==0){/*printf("I will create\n");*/ controller=1;}
@@ -33,13 +29,15 @@ int main(int argc, char*argv[]){
   if(controller==1){
     //printf("%s\n",strerror(errno));
     int shmd;
-    shmd=shmget(KEY, sizeof(int), IPC_CREAT | IPC_EXCL | 0640);
-    int data[2];
-    int* dpointer = data;
-    dpointer = shmat(shmd, 0, 0);
-    dpointer[0] = open("log.txt", O_RDWR | O_CREAT | O_TRUNC, 0644);
-    dpointer[1]= 0;
-    //printf("DATA = %d\n",*data);
+    shmd=shmget(KEY, 8, IPC_CREAT | IPC_EXCL | 0640);
+    int *data;
+    data = shmat(shmd, 0, 0);
+    int fd;
+    fd = open("log.data", O_RDWR | O_CREAT | O_TRUNC, 0644);
+    char m[20]="Once upon a time....";
+    write(fd,m,sizeof(m));
+    *data = sizeof(m);
+    //printf("ORIGINAL INT POINTER = %p\n",dpointer);
     int semd, v, r;
     semd = semget(KEY2, 1, IPC_CREAT | IPC_EXCL | 0644);
     if (semd == -1) {
@@ -57,14 +55,17 @@ int main(int argc, char*argv[]){
 
   if(controller==-1){
     int log;
-    int n[2];
-    int* npointer=n;
+    int fd2;
+    int *data;
     char s[100];
+
     log=shmget(KEY, 0, 0);
-    npointer=shmat(log, 0, 0);
-    //printf("RETRIEVED SHM VALUE = %d\n",*n);
-    read(npointer[0], s, sizeof(s));
+    data=shmat(log, 0, 0);
+    //printf("CHECK = %d\n",p2->length);
+    fd2=open("log.data", 0, 0);
+    read(fd2, s, sizeof(s));
     printf("%s\n",s);
+
     int semd=semget(KEY2, 1, 0);
     semctl(semd, IPC_RMID, 0);
     int shmd=shmget(KEY, 0, 0);
